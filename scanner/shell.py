@@ -14,8 +14,10 @@ class ShellScanner:
             "TARGET_FILE": {"value": None, "required": True, "Description": "The target file containing list of URLs"},
             "DIR_LIST_FILE": {"value": "assets/files/dir.txt", "required": True, "Description": "File containing list of directories"},
             "FILE_LIST_FILE": {"value": "assets/files/nameshell.txt", "required": True, "Description": "File containing list of shell files"},
-            "NUM_THREADS": {"value": 10, "required": False, "Description": "Number of concurrent threads"}
+            "NUM_THREADS": {"value": 10, "required": False, "Description": "Number of concurrent threads"},
+            "OUTPUT_FILE": {"value": "result/shellfound.txt", "required": False, "Description": "File to save the scan results"}
         }
+        self.results = []
 
     def set_options(self, option, value):
         if option in self.options:
@@ -63,15 +65,23 @@ class ShellScanner:
             response = requests.head(url, verify=False)
 
         if response.status_code == 403:
-            print(f"[{colors.green}✔{colors.reset}] Directory: {url}")
+            result = f"[{colors.green}✔{colors.reset}] Directory: {url}"
+            print(result)
+            self.results.append(result)
             self.scan_files(target_url, directory, current_path)
         elif response.status_code == 200:
-            print(f"[{colors.cyan}❔{colors.reset}] Directory: {url}")
+            result = f"[{colors.cyan}❔{colors.reset}] Directory: {url}"
+            print(result)
+            self.results.append(result)
             self.scan_files(target_url, directory, current_path)
         elif response.status_code == 301:
-            print(f"[{colors.yellow}❔{colors.reset}] Directory: {url}")
+            result = f"[{colors.yellow}❔{colors.reset}] Directory: {url}"
+            print(result)
+            self.results.append(result)
         else:
-            print(f"[{colors.red}✗{colors.reset}] Directory: {url}")
+            result = f"[{colors.red}✗{colors.reset}] Directory: {url}"
+            print(result)
+            self.results.append(result)
 
     def scan_files(self, target_url, directory, current_path):
         file_list = self.get_file(self.options["FILE_LIST_FILE"]["value"])
@@ -93,9 +103,23 @@ class ShellScanner:
             response = requests.head(url, verify=False)
 
         if response.status_code == 200:
-            print(f"[{colors.yellow}✔{colors.reset}] File: {url}")
+            result = f"[{colors.yellow}✔{colors.reset}] File: {url}"
+            print(result)
+            self.results.append(result)
         else:
-            print(f"[{colors.red}✗{colors.reset}] File: {url}")
+            result = f"[{colors.red}✗{colors.reset}] File: {url}"
+            print(result)
+            self.results.append(result)
+
+    def save_results(self):
+        output_file = self.options["OUTPUT_FILE"]["value"]
+        try:
+            with open(output_file, "w") as file:
+                for result in self.results:
+                    file.write(result + "\n")
+            print(f"{colors.green}✔{colors.reset} Results saved to {output_file}")
+        except Exception as e:
+            print(f"{colors.red}✗{colors.reset} Failed to save results: {e}")
 
     def start_scan(self):
         target_file = self.options["TARGET_FILE"]["value"]
@@ -112,6 +136,8 @@ class ShellScanner:
             dir_list = self.get_file(dir_list_file)
             if dir_list:
                 self.scan_directories(target_url, dir_list)
+
+        self.save_results()
 
     def run(self):
         self.start_scan()

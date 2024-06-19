@@ -67,21 +67,17 @@ class ShellScanner:
         if response.status_code == 403:
             result = f"[{colors.green}✔{colors.reset}] Directory: {url}"
             print(result)
-            self.results.append(result)
             self.scan_files(target_url, directory, current_path)
         elif response.status_code == 200:
             result = f"[{colors.cyan}❔{colors.reset}] Directory: {url}"
             print(result)
-            self.results.append(result)
             self.scan_files(target_url, directory, current_path)
         elif response.status_code == 301:
             result = f"[{colors.yellow}❔{colors.reset}] Directory: {url}"
             print(result)
-            self.results.append(result)
         else:
             result = f"[{colors.red}✗{colors.reset}] Directory: {url}"
             print(result)
-            self.results.append(result)
 
     def scan_files(self, target_url, directory, current_path):
         file_list = self.get_file(self.options["FILE_LIST_FILE"]["value"])
@@ -105,11 +101,11 @@ class ShellScanner:
         if response.status_code == 200:
             result = f"[{colors.yellow}✔{colors.reset}] File: {url}"
             print(result)
-            self.results.append(result)
+            self.results.append(result)  
         else:
             result = f"[{colors.red}✗{colors.reset}] File: {url}"
             print(result)
-            self.results.append(result)
+            
 
     def save_results(self):
         output_file = self.options["OUTPUT_FILE"]["value"]
